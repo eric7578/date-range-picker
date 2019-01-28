@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import { getStartOfMonth, getStartOfWeek } from './timeUtils.js'
+import { getStartOfMonth, getStartOfWeek } from '../utils/timeUtils.js'
 
 export default {
   props: {

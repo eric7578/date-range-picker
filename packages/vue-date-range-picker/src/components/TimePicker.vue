@@ -27,7 +27,8 @@ export default {
     date: {
       type: Date,
       required: true
-    }
+    },
+    increment: Number
   },
   computed: {
     hour: {
@@ -62,7 +63,7 @@ export default {
     },
     availableMinutes() {
       const minutes = [];
-      for (let m = 0; m < 60; m++) {
+      for (let m = 0; m < 60; m += this.increment) {
         let minute = m.toString();
         if (minute.length < 2) {
           minute = '0' + minute;

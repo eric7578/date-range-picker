@@ -4,13 +4,37 @@
 
     <div class="calendarWrapper">
       <div>
-        <date-picker :date="d0" :month-labels="monthLabels" :weekday-labels="weekLabels" @change-month="onChangeMonth0" @change-date="onChangeDate"></date-picker>
-        <time-picker v-if="timePicker" :date.sync="selection[0]"></time-picker>
+        <date-picker
+          :month-labels="monthLabels"
+          :weekday-labels="weekLabels"
+          :date="d0"
+          @change-month="onChangeMonth0"
+          @change-date="onChangeDate"
+        >
+        </date-picker>
+        <time-picker
+          v-if="timePicker"
+          :increment="timePickerIncrement"
+          :date.sync="selection[0]"
+        >
+        </time-picker>
       </div>
 
       <div v-if="!singleDatePicker">
-        <date-picker :month-labels="monthLabels" :weekday-labels="weekLabels" :date="d1" @change-month="onChangeMonth1" @change-date="onChangeDate"></date-picker>
-        <time-picker v-if="timePicker" :date.sync="selection[1]"></time-picker>
+        <date-picker
+          :month-labels="monthLabels"
+          :weekday-labels="weekLabels"
+          :date="d1"
+          @change-month="onChangeMonth1"
+          @change-date="onChangeDate"
+        >
+        </date-picker>
+        <time-picker
+          v-if="timePicker"
+          :increment="timePickerIncrement"
+          :date.sync="selection[1]"
+        >
+        </time-picker>
       </div>
 
       <div>
@@ -54,7 +78,11 @@ export default {
       type: Boolean,
       default: true
     },
-    timePicker: Boolean
+    timePicker: Boolean,
+    timePickerIncrement: {
+      type: Number,
+      default: 5
+    }
   },
   data() {
     const selection = [this.date];

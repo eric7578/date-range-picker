@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <date-range-picker :date.sync="date[0]" :date-end.sync="date[1]" :single-date-picker="false"></date-range-picker>
+    <date-range-picker :date.sync="date[0]" :date-end.sync="date[1]" :single-date-picker="false" :time-picker="true"></date-range-picker>
   </div>
 </template>
 

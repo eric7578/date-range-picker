@@ -4,21 +4,12 @@
 
     <div class="calendarWrapper">
       <div>
-        <div>
-          <input type="button" value="Prev" @click="gotoPrevMonth">
-          <month-picker :month-labels="monthLabels" :date.sync="displayStart"></month-picker>
-          <input type="button" value="Next" @click="gotoNextMonth" v-if="singleDatePicker">
-        </div>
-        <calendar :month-labels="monthLabels" :selected-date.sync="selection[0]" :display-date="displayStart"></calendar>
+        <date-picker :date="d0" :month-labels="monthLabels" :weekday-labels="weekLabels" @change-month="onChangeMonth0" @change-date="onChangeDate"></date-picker>
         <time-picker v-if="timePicker" :date.sync="selection[0]"></time-picker>
       </div>
 
       <div v-if="!singleDatePicker">
-        <div>
-          <month-picker :month-labels="monthLabels" :date.sync="displayEnd"></month-picker>
-          <input type="button" value="Next" @click="gotoNextMonth">
-        </div>
-        <calendar :month-labels="monthLabels" :selected-date.sync="selection[1]" :display-date="displayEnd"></calendar>
+        <date-picker :month-labels="monthLabels" :weekday-labels="weekLabels" :date="d1" @change-month="onChangeMonth1" @change-date="onChangeDate"></date-picker>
         <time-picker v-if="timePicker" :date.sync="selection[1]"></time-picker>
       </div>
 
@@ -31,15 +22,13 @@
 </template>
 
 <script>
-import Calendar from './Calendar.vue';
-import MonthPicker from './MonthPicker.vue';
+import DatePicker from './DatePicker.vue';
 import TimePicker from './TimePicker.vue';
 import { getStartOfDay } from '../utils/timeUtils.js';
 
 export default {
   components: {
-    Calendar,
-    MonthPicker,
+    DatePicker,
     TimePicker
   },
   props: {
@@ -54,36 +43,36 @@ export default {
         return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       }
     },
+    weekLabels: {
+      type: Array,
+      default() {
+        return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      }
+    },
     singleDatePicker: Boolean,
+    linkedCalendars: {
+      type: Boolean,
+      default: true
+    },
     timePicker: Boolean
   },
   data() {
-    const data = {};
-    data.selection = [this.date];
+    const selection = [this.date];
     if (this.dateEnd) {
-      data.selection.push(this.dateEnd);
+      selection.push(this.dateEnd);
     }
 
-    data.displayStart = new Date(this.date);
+    const d0 = new Date(this.date);
+    const d1 = new Date(this.date);
+    d1.setMonth(d1.getMonth() + 1);
 
-    return data;
+    return {
+      selection,
+      d0,
+      d1
+    };
   },
   computed: {
-    displayEnd: {
-      get() {
-        if (this.singleDatePicker) {
-          return false;
-        }
-        const displayEnd = new Date(this.displayStart);
-        displayEnd.setMonth(displayEnd.getMonth() + 1);
-        return displayEnd;
-      },
-      set(displayEnd) {
-        const displayStart = new Date(displayEnd);
-        displayStart.setMonth(displayEnd.getMonth() - 1);
-        this.displayStart = displayStart;
-      }
-    },
     formatDisplay() {
       if (this.dateEnd) {
         return `${this.getFormatDisplay(this.date)} - ${this.getFormatDisplay(this.dateEnd)}`;
@@ -98,32 +87,22 @@ export default {
       const date = this.timePicker
         ? new Date(this.selection[0])
         : getStartOfDay(this.selection[0]);
-      this.$emit('update:date', date);
 
       if (this.selection[1]) {
         const dateEnd = this.timePicker
           ? new Date(this.selection[1])
           : getStartOfDay(this.selection[1]);
-        this.$emit('update:dateEnd', dateEnd);
+
+        if (date.getTime() > dateEnd.getTime()) {
+          this.$emit('update:date', dateEnd);
+          this.$emit('update:dateEnd', date);
+        } else {
+          this.$emit('update:date', date);
+          this.$emit('update:dateEnd', dateEnd);
+        }
+      } else {
+        this.$emit('update:date', date);
       }
-    },
-    formatSelectionDisplay(date) {
-      const month = this.monthLabels[date.getMonth()];
-      return `${month} ${date.getDate()}, ${date.getFullYear()}`;
-    },
-    formatMonthDisplay(date) {
-      const month = this.monthLabels[date.getMonth()];
-      return `${month} ${date.getFullYear()}`;
-    },
-    gotoPrevMonth() {
-      const nextDisplayDate = new Date(this.displayStart);
-      nextDisplayDate.setMonth(nextDisplayDate.getMonth() - 1);
-      this.displayStart = nextDisplayDate;
-    },
-    gotoNextMonth() {
-      const nextDisplayDate = new Date(this.displayStart);
-      nextDisplayDate.setMonth(nextDisplayDate.getMonth() + 1);
-      this.displayStart = nextDisplayDate;
     },
     getFormatDisplay(date) {
       const month = this.monthLabels[date.getMonth()];
@@ -143,6 +122,28 @@ export default {
         display = `${display} ${hh}:${mm}`;
       }
       return display;
+    },
+    onChangeMonth0(date) {
+      this.d0 = date;
+
+      if (this.linkedCalendars || this.d0.getTime() > this.d1.getTime()) {
+        const d1 = new Date(date);
+        d1.setMonth(d1.getMonth() + 1);
+        this.d1 = d1;
+      }
+    },
+    onChangeMonth1(date) {
+      this.d1 = date;
+
+      if (this.linkedCalendars || this.d0.getTime() > this.d1.getTime()) {
+        const d0 = new Date(date);
+        d0.setMonth(d0.getMonth() - 1);
+        this.d0 = d0;
+      }
+    },
+    onChangeDate(date) {
+      this.selection.shift();
+      this.selection.push(date);
     }
   }
 };

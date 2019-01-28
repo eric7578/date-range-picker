@@ -10,7 +10,7 @@
           <input type="button" value="Next" @click="gotoNextMonth" v-if="singleDatePicker">
         </div>
         <calendar :month-labels="monthLabels" :selected-date.sync="selection[0]" :display-date="displayStart"></calendar>
-        <time-picker :date.sync="selection[0]"></time-picker>
+        <time-picker v-if="timePicker" :date.sync="selection[0]"></time-picker>
       </div>
 
       <div v-if="!singleDatePicker">
@@ -19,7 +19,7 @@
           <input type="button" value="Next" @click="gotoNextMonth">
         </div>
         <calendar :month-labels="monthLabels" :selected-date.sync="selection[1]" :display-date="displayEnd"></calendar>
-        <time-picker :date.sync="selection[1]"></time-picker>
+        <time-picker v-if="timePicker" :date.sync="selection[1]"></time-picker>
       </div>
 
       <div>
@@ -34,6 +34,7 @@
 import Calendar from './Calendar.vue';
 import MonthPicker from './MonthPicker.vue';
 import TimePicker from './TimePicker.vue';
+import { getStartOfDay } from '../utils/timeUtils.js';
 
 export default {
   components: {
@@ -53,7 +54,8 @@ export default {
         return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       }
     },
-    singleDatePicker: Boolean
+    singleDatePicker: Boolean,
+    timePicker: Boolean
   },
   data() {
     const data = {};
@@ -93,9 +95,16 @@ export default {
     onClickCancel() {
     },
     onClickApply() {
-      this.$emit('update:date', this.selection[0]);
+      const date = this.timePicker
+        ? new Date(this.selection[0])
+        : getStartOfDay(this.selection[0]);
+      this.$emit('update:date', date);
+
       if (this.selection[1]) {
-        this.$emit('update:dateEnd', this.selection[1]);
+        const dateEnd = this.timePicker
+          ? new Date(this.selection[1])
+          : getStartOfDay(this.selection[1]);
+        this.$emit('update:dateEnd', dateEnd);
       }
     },
     formatSelectionDisplay(date) {

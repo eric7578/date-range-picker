@@ -50,6 +50,10 @@ function Years(props) {
 function Days(props) {
   const datesOfMonth = getDatesOfMonth(props.year, props.month);
 
+  const onClickDate = e => {
+    props.onClickDate(parseInt(e.target.innerText));
+  }
+
   return (
     <table>
       <thead>
@@ -63,6 +67,7 @@ function Days(props) {
             {week.map(weekDay =>
               <td
                 key={weekDay.getDate()}
+                onClick={onClickDate}
               >
                 {weekDay.getDate()}
               </td>
@@ -98,6 +103,11 @@ export default function DatePicker(props) {
     props.onChangeDisplay(date);
   }
 
+  const onClickDate = date => {
+    const d = new Date(props.displayYear, props.displayMonth, date);
+    props.onChange(d);
+  }
+
   return (
     <div>
       <div>
@@ -129,6 +139,7 @@ export default function DatePicker(props) {
         year={props.displayYear}
         month={props.displayMonth}
         weekdayLabels={props.weekdayLabels}
+        onClickDate={onClickDate}
       />
     </div>
   );

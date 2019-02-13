@@ -7,8 +7,8 @@ import style from './DateRangePicker.module.css';
 export default function DateRangerPicker(props) {
   const [d0, setDisplay0] = useState(() => {
     return props.singleDatePicker
-      ? new Date(props.selection)
-      : new Date(props.selection[0]);
+      ? new Date(props.value)
+      : new Date(props.value[0]);
   });
   const [d1, setDisplay1] = useState(() => {
     return props.singleDatePicker
@@ -38,46 +38,175 @@ export default function DateRangerPicker(props) {
     }
   }
 
-  const onChangeSelection = date => {
+  const [selectStartDate, setSelectStartDate] = useState(false);
+  const [selectEndDate, setSelectEndDate] = useState(false);
+  const [selection, setSelection] = useState(() => {
+    if (props.singleDatePicker) {
+      return new Date(props.value);
+    } else {
+      return props.value.map(date => new Date(date));
+    }
+  });
+
+  const onChangeDateSelection = d => {
+    if (props.singleDatePicker) {
+      const nextSelection = new Date(selection);
+      nextSelection.setFullYear(d.getFullYear());
+      nextSelection.setMonth(d.getMonth());
+      nextSelection.setDate(d.getDate());
+      setSelection(nextSelection);
+    } else {
+      if (!selectStartDate && !selectEndDate) {
+        const nextSelection = new Date(selection[0]);
+        nextSelection.setFullYear(d.getFullYear());
+        nextSelection.setMonth(d.getMonth());
+        nextSelection.setDate(d.getDate());
+
+        setSelectStartDate(true);
+        setSelection([nextSelection, selection[1]]);
+      } else if (selectStartDate && selectEndDate) {
+        const nextSelection = new Date(selection[0]);
+        nextSelection.setFullYear(d.getFullYear());
+        nextSelection.setMonth(d.getMonth());
+        nextSelection.setDate(d.getDate());
+
+        setSelectEndDate(false);
+        setSelection([nextSelection, selection[1]]);
+      } else if (selectStartDate) {
+        const nextSelection = new Date(selection[1]);
+        nextSelection.setFullYear(d.getFullYear());
+        nextSelection.setMonth(d.getMonth());
+        nextSelection.setDate(d.getDate());
+
+        setSelectEndDate(true);
+        setSelection([selection[0], nextSelection]);
+      }
+    }
+  }
+
+  const onChangeTimeSelection0 = ({ hours, minutes }) => {
+    if (props.singleDatePicker) {
+      const nextSelection = new Date(selection);
+      nextSelection.setHours(hours);
+      nextSelection.setMinutes(minutes);
+      setSelection(nextSelection);
+    } else {
+      const d = new Date(selection[0]);
+      d.setHours(hours);
+      d.setMinutes(minutes);
+      setSelection([ d, new Date(selection[1]) ]);
+    }
+  }
+
+  const onChangeTimeSelection1 = ({ hours, minutes }) => {
+    const d = new Date(selection[1]);
+    d.setHours(hours);
+    d.setMinutes(minutes);
+    setSelection([ new Date(selection[0]), d ]);
+  }
+
+  const formatSelection = date => {
+    const month = props.monthLabels[date.getMonth()];
+
+    let dd = date.getDate();
+    dd = dd > 9 ? dd : '0' + dd;
+
+    let display = `${month} ${dd}, ${date.getFullYear()}`;
+
+    if (props.timePicker) {
+      let hh = date.getHours();
+      hh = hh > 9 ? hh : '0' + hh;
+
+      let mm = date.getMinutes();
+      mm = mm > 9 ? mm : '0' + mm;
+
+      display = `${display} ${hh}:${mm}`;
+    }
+
+    return display;
+  }
+
+  const onApply = e => {
+    props.onChange(selection);
+  }
+
+  const onCancel = e => {
+    if (props.singleDatePicker) {
+      setSelection(new Date(props.value));
+    } else {
+      setSelectStartDate(false);
+      setSelectEndDate(false);
+      setSelection(props.value.map(date => new Date(date)));
+    }
   }
 
   return (
-    <div className={style.calendarWrapper}>
+    <div>
       <div>
-        <DatePicker
-          displayYear={d0.getFullYear()}
-          displayMonth={d0.getMonth()}
-          monthLabels={props.monthLabels}
-          weekdayLabels={props.weekdayLabels}
-          onChangeDisplay={onChangeDisplay0}
-          onChange={onChangeSelection}
-        />
-        <TimePicker
-          minuteIncrement={props.minuteIncrement}
-          selection={props.singleDatePicker
-            ? props.selection
-            : props.selection[0]
-          }
-          onChange={onChangeSelection}
-        />
+        {props.singleDatePicker
+          ? formatSelection(props.value)
+          : `${formatSelection(props.value[0])} - ${formatSelection(props.value[1])}`
+        }
       </div>
-      {!props.singleDatePicker &&
+      <div className={style.calendarWrapper}>
         <div>
           <DatePicker
-            displayYear={d1.getFullYear()}
-            displayMonth={d1.getMonth()}
+            displayYear={d0.getFullYear()}
+            displayMonth={d0.getMonth()}
             monthLabels={props.monthLabels}
             weekdayLabels={props.weekdayLabels}
-            onChangeDisplay={onChangeDisplay1}
-            onChange={onChangeSelection}
+            onChangeDisplay={onChangeDisplay0}
+            onChange={onChangeDateSelection}
           />
-          <TimePicker
-            minuteIncrement={props.minuteIncrement}
-            selection={props.selection[1]}
-            onChange={onChangeSelection}
-          />
+          {props.timePicker &&
+            <TimePicker
+              hours={props.singleDatePicker
+                ? selection.getHours()
+                : selection[0].getHours()
+              }
+              minutes={props.singleDatePicker
+                ? selection.getMinutes()
+                : selection[0].getMinutes()
+              }
+              minuteIncrement={props.minuteIncrement}
+              onChange={onChangeTimeSelection0}
+            />
+          }
         </div>
-      }
+        {!props.singleDatePicker &&
+          <div>
+            <DatePicker
+              displayYear={d1.getFullYear()}
+              displayMonth={d1.getMonth()}
+              monthLabels={props.monthLabels}
+              weekdayLabels={props.weekdayLabels}
+              onChangeDisplay={onChangeDisplay1}
+              onChange={onChangeDateSelection}
+            />
+            {props.timePicker &&
+              <TimePicker
+                hours={selection[1].getHours()}
+                minutes={selection[1].getMinutes()}
+                minuteIncrement={props.minuteIncrement}
+                onChange={onChangeTimeSelection1}
+              />
+            }
+          </div>
+        }
+      </div>
+      <div>
+        <input
+          type='button'
+          value='Apply'
+          disabled={!props.singleDatePicker && (!selectStartDate || !selectEndDate)}
+          onClick={onApply}
+        />
+        <input
+          type='button'
+          value='Cancel'
+          onClick={onCancel}
+        />
+      </div>
     </div>
   );
 }
@@ -87,10 +216,11 @@ DateRangerPicker.propTypes = {
   linkedCalendars: PropTypes.bool,
   monthLabels: PropTypes.arrayOf(PropTypes.string),
   weekdayLabels: PropTypes.arrayOf(PropTypes.string),
-  selection: PropTypes.oneOfType([
+  value: PropTypes.oneOfType([
     PropTypes.instanceOf(Date),
     PropTypes.arrayOf(PropTypes.instanceOf(Date))
   ]),
+  timePicker: PropTypes.bool,
   minuteIncrement: PropTypes.number,
   onChange: PropTypes.func
 };
@@ -100,5 +230,6 @@ DateRangerPicker.defaultProps = {
   linkedCalendars: false,
   monthLabels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
   weekdayLabels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-  minuteIncrement: 1
+  minuteIncrement: 1,
+  timePicker: false
 };

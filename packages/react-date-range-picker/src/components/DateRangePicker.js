@@ -8,7 +8,7 @@ export default function DateRangerPicker(props) {
   const [d0, setDisplay0] = useState(() => {
     return props.singleDatePicker
       ? new Date(props.selection)
-      : new Date(props.selections[0]);
+      : new Date(props.selection[0]);
   });
   const [d1, setDisplay1] = useState(() => {
     return props.singleDatePicker
@@ -19,18 +19,22 @@ export default function DateRangerPicker(props) {
   const onChangeDisplay0 = nextD0 => {
     setDisplay0(nextD0);
 
-    if (props.linkedCalendars || nextD0.getTime() > d1.getTime()) {
-      const d1 = new Date(nextD0.getFullYear(), nextD0.getMonth() + 1);
-      setDisplay1(d1);
+    if (!props.singleDatePicker) {
+      if (props.linkedCalendars || nextD0.getTime() > d1.getTime()) {
+        const d1 = new Date(nextD0.getFullYear(), nextD0.getMonth() + 1);
+        setDisplay1(d1);
+      }
     }
   }
 
   const onChangeDisplay1 = nextD1 => {
     setDisplay1(nextD1);
 
-    if (props.linkedCalendars || d0.getTime() > nextD1.getTime()) {
-      const d0 = new Date(nextD1.getFullYear(), nextD1.getMonth() - 1);
-      setDisplay0(d0);
+    if (!props.singleDatePicker) {
+      if (props.linkedCalendars || d0.getTime() > nextD1.getTime()) {
+        const d0 = new Date(nextD1.getFullYear(), nextD1.getMonth() - 1);
+        setDisplay0(d0);
+      }
     }
   }
 
@@ -50,7 +54,10 @@ export default function DateRangerPicker(props) {
         />
         <TimePicker
           minuteIncrement={props.minuteIncrement}
-          selection={props.selection || props.selections[0]}
+          selection={props.singleDatePicker
+            ? props.selection
+            : props.selection[0]
+          }
           onChange={onChangeSelection}
         />
       </div>
@@ -66,7 +73,7 @@ export default function DateRangerPicker(props) {
           />
           <TimePicker
             minuteIncrement={props.minuteIncrement}
-            selection={props.selections[1]}
+            selection={props.selection[1]}
             onChange={onChangeSelection}
           />
         </div>
@@ -80,8 +87,10 @@ DateRangerPicker.propTypes = {
   linkedCalendars: PropTypes.bool,
   monthLabels: PropTypes.arrayOf(PropTypes.string),
   weekdayLabels: PropTypes.arrayOf(PropTypes.string),
-  selection: PropTypes.instanceOf(Date),
-  selections: PropTypes.arrayOf(PropTypes.instanceOf(Date)),
+  selection: PropTypes.oneOfType([
+    PropTypes.instanceOf(Date),
+    PropTypes.arrayOf(PropTypes.instanceOf(Date))
+  ]),
   minuteIncrement: PropTypes.number,
   onChange: PropTypes.func
 };

@@ -8,7 +8,11 @@ function Hours(props) {
     hours.push(<option key={h} value={h}>{h}</option>);
   }
 
-  return <select {...others} onChange={e => onChange(e.target.value)}>{hours}</select>;
+  const onChangeHours = e => {
+    onChange(parseInt(e.target.value));
+  }
+
+  return <select {...others} onChange={onChangeHours}>{hours}</select>;
 }
 
 function Minutes(props) {
@@ -19,34 +23,41 @@ function Minutes(props) {
     minutes.push(<option key={m} value={m}>{minute}</option>);
   }
 
-  return <select {...others} onChange={e => onChange(e.target.value)}>{minutes}</select>;
+  const onChangeMinutes = e => {
+    onChange(parseInt(e.target.value));
+  }
+
+  return <select {...others} onChange={onChangeMinutes}>{minutes}</select>;
 }
 
 export default function TimePicker(props) {
-  const { selection, minuteIncrement, ...others } = props;
+  const { onChange, hours, minutes, minuteIncrement, ...others } = props;
 
   const onChangeHours = hours => {
-    const date = new Date(selection);
-    date.setHours(hours);
-    props.onChange(date);
+    onChange({
+      hours,
+      minutes
+    });
   }
 
   const onChangeMinutes = minutes => {
-    const date = new Date(selection);
-    date.setMinutes(minutes);
-    props.onChange(date);
+    onChange({
+      hours,
+      minutes
+    });
   }
 
   return (
     <div {...others}>
-      <Hours value={selection.getHours()} onChange={onChangeHours} />
-      <Minutes value={selection.getMinutes()} onChange={onChangeMinutes} increment={minuteIncrement} />
+      <Hours value={hours} onChange={onChangeHours} />
+      <Minutes value={minutes} onChange={onChangeMinutes} increment={minuteIncrement} />
     </div>
   );
 }
 
 TimePicker.propTypes = {
-  selection: PropTypes.instanceOf(Date),
+  hours: PropTypes.number,
+  minutes: PropTypes.number,
   minuteIncrement: PropTypes.number,
   onChange: PropTypes.func
 };

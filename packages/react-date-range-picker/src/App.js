@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import './App.css';
 import DateRangePicker from './components/DateRangePicker';
 
 class App extends Component {
@@ -12,15 +11,13 @@ class App extends Component {
 
   render() {
     return (
-      <div className="App">
-        <DateRangePicker
-          timePicker
-          value={this.state.value}
-          onChange={selection => this.setState({
-            value: selection
-          })}
-        />
-      </div>
+      <DateRangePicker
+        timePicker
+        value={this.state.value}
+        onChange={selection => this.setState({
+          value: selection
+        })}
+      />
     );
   }
 }

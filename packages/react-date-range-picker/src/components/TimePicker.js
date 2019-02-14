@@ -31,33 +31,37 @@ function Minutes(props) {
 }
 
 export default function TimePicker(props) {
-  const { onChange, hours, minutes, minuteIncrement, ...others } = props;
+  const { onChange, value, minuteIncrement, ...others } = props;
 
   const onChangeHours = hours => {
-    onChange({
-      hours,
-      minutes
-    });
+    const d = new Date(value);
+    d.setHours(hours);
+    onChange(d);
   }
 
   const onChangeMinutes = minutes => {
-    onChange({
-      hours,
-      minutes
-    });
+    const d = new Date(value);
+    d.setMinutes(minutes);
+    onChange(d);
   }
 
   return (
     <div {...others}>
-      <Hours value={hours} onChange={onChangeHours} />
-      <Minutes value={minutes} onChange={onChangeMinutes} increment={minuteIncrement} />
+      <Hours
+        value={value.getHours()}
+        onChange={onChangeHours}
+      />
+      <Minutes
+        value={value.getMinutes()}
+        onChange={onChangeMinutes}
+        increment={minuteIncrement}
+      />
     </div>
   );
 }
 
 TimePicker.propTypes = {
-  hours: PropTypes.number,
-  minutes: PropTypes.number,
   minuteIncrement: PropTypes.number,
+  value: PropTypes.instanceOf(Date),
   onChange: PropTypes.func
 };

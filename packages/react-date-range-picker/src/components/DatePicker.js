@@ -104,7 +104,8 @@ export default function DatePicker(props) {
   }
 
   const onClickDate = date => {
-    const d = new Date(props.displayYear, props.displayMonth, date);
+    const d = new Date(props.value);
+    d.setFullYear(props.displayYear, props.displayMonth, date);
     props.onChange(d);
   }
 
@@ -151,5 +152,7 @@ DatePicker.propTypes = {
   monthLabels: PropTypes.arrayOf(PropTypes.string),
   weekdayLabels: PropTypes.arrayOf(PropTypes.string),
   selections: PropTypes.arrayOf(PropTypes.instanceOf(Date)),
+  value: PropTypes.instanceOf(Date),
+  onChange: PropTypes.func,
   onChangeDisplay: PropTypes.func
 };

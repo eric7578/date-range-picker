@@ -4,20 +4,33 @@ import DateRangePicker from './components/DateRangePicker';
 class App extends Component {
 
   state = {
-    value: [
+    singlePickerValue: new Date(),
+    rangePickerValue: [
       new Date(), new Date()
     ]
   }
 
   render() {
     return (
-      <DateRangePicker
-        timePicker
-        value={this.state.value}
-        onChange={selection => this.setState({
-          value: selection
-        })}
-      />
+      <>
+        <h3>Single Picker</h3>
+        <DateRangePicker
+          singleDatePicker
+          timePicker
+          value={this.state.singlePickerValue}
+          onChange={selection => this.setState({
+            singlePickerValue: selection
+          })}
+        />
+        <h3>Range Picker</h3>
+        <DateRangePicker
+          timePicker
+          value={this.state.rangePickerValue}
+          onChange={selection => this.setState({
+            rangePickerValue: selection
+          })}
+        />
+      </>
     );
   }
 }

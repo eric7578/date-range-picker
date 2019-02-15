@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import document from 'global/document';
+import window from 'global/window';
 import SinglePicker from './SinglePicker';
 import RangePicker from './RangePicker';
 import style from './DateRangePicker.module.css';
@@ -35,6 +36,7 @@ export default function DateRangerPicker(props) {
   const prevPopup = usePrevious(popup);
   const [selection, setSelection] = useState(() => getDefaultSelection(props.value, props.singleDatePicker));
 
+  const refPicker = useRef(null);
   const refInput = useRef(null);
   const [popupOffset, setPopupOffset] = useState();
 
@@ -42,8 +44,13 @@ export default function DateRangerPicker(props) {
     if (!prevPopup && popup) {
       const nextSelection = getDefaultSelection(props.value, props.singleDatePicker);
       setSelection(nextSelection);
+      window.addEventListener('click', checkIfClickOutside);
     }
-  });
+
+    return () => {
+      window.removeEventListener('click', checkIfClickOutside);
+    }
+  }, [popup]);
 
   const onApply = e => {
     setPopup(false);
@@ -61,6 +68,22 @@ export default function DateRangerPicker(props) {
       top: rect.bottom
     });
     setPopup(true);
+  }
+
+  const checkIfClickOutside = e => {
+    let el = e.target;
+    let clickInside = false;
+    do {
+      if (el === refPicker.current || el === refInput.current) {
+        clickInside = true;
+        break;
+      }
+      el = el.parentElement;
+    } while (el && el !== document.body)
+
+    if (!clickInside) {
+      onCancel();
+    }
   }
 
   const formatSelection = date => {
@@ -99,6 +122,7 @@ export default function DateRangerPicker(props) {
       {popup &&
         ReactDOM.createPortal(
           <div
+            ref={refPicker}
             style={{
               position: 'absolute',
               ...popupOffset

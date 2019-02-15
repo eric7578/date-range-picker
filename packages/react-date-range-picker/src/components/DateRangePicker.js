@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
+import document from 'global/document';
 import SinglePicker from './SinglePicker';
 import RangePicker from './RangePicker';
+import style from './DateRangePicker.module.css';
 
 function usePrevious(value) {
   const ref = useRef();
@@ -32,6 +35,9 @@ export default function DateRangerPicker(props) {
   const prevPopup = usePrevious(popup);
   const [selection, setSelection] = useState(() => getDefaultSelection(props.value, props.singleDatePicker));
 
+  const refInput = useRef(null);
+  const [popupOffset, setPopupOffset] = useState();
+
   useEffect(() => {
     if (!prevPopup && popup) {
       const nextSelection = getDefaultSelection(props.value, props.singleDatePicker);
@@ -46,6 +52,15 @@ export default function DateRangerPicker(props) {
 
   const onCancel = e => {
     setPopup(false);
+  }
+
+  const onPopup = e => {
+    const rect = refInput.current.getBoundingClientRect();
+    setPopupOffset({
+      left: rect.left,
+      top: rect.bottom
+    });
+    setPopup(true);
   }
 
   const formatSelection = date => {
@@ -70,56 +85,64 @@ export default function DateRangerPicker(props) {
   }
 
   return (
-    <div>
+    <div className={style.dateRangePickerWrapper}>
       <input
         type='text'
+        ref={refInput}
         value={props.singleDatePicker
           ? formatSelection(props.value)
           : `${formatSelection(props.value[0])} - ${formatSelection(props.value[1])}`
         }
         onChange={e => e.preventDefault()}
-        onClick={e => setPopup(true)}
+        onClick={onPopup}
       />
       {popup &&
-        <div>
-          {props.singleDatePicker
-            ? (
-              <SinglePicker
-                monthLabels={props.monthLabels}
-                weekdayLabels={props.weekdayLabels}
-                minuteIncrement={props.minuteIncrement}
-                timePicker={props.timePicker}
-                selection={selection}
-                onChangeSelection={setSelection}
+        ReactDOM.createPortal(
+          <div
+            style={{
+              position: 'absolute',
+              ...popupOffset
+            }}
+          >
+            {props.singleDatePicker
+              ? (
+                <SinglePicker
+                  monthLabels={props.monthLabels}
+                  weekdayLabels={props.weekdayLabels}
+                  minuteIncrement={props.minuteIncrement}
+                  timePicker={props.timePicker}
+                  selection={selection}
+                  onChangeSelection={setSelection}
+                />
+              )
+              : (
+                <RangePicker
+                  monthLabels={props.monthLabels}
+                  weekdayLabels={props.weekdayLabels}
+                  minuteIncrement={props.minuteIncrement}
+                  timePicker={props.timePicker}
+                  linkedCalendars={props.linkedCalendars}
+                  selection={selection}
+                  onChangeSelection={setSelection}
+                />
+              )
+            }
+            <div>
+              <input
+                type='button'
+                value='Apply'
+                disabled={!props.singleDatePicker && selection.length < 2}
+                onClick={onApply}
               />
-            )
-            : (
-              <RangePicker
-                monthLabels={props.monthLabels}
-                weekdayLabels={props.weekdayLabels}
-                minuteIncrement={props.minuteIncrement}
-                timePicker={props.timePicker}
-                linkedCalendars={props.linkedCalendars}
-                selection={selection}
-                onChangeSelection={setSelection}
+              <input
+                type='button'
+                value='Cancel'
+                onClick={onCancel}
               />
-            )
-          }
-          <div>
-            <input
-              type='button'
-              value='Apply'
-              disabled={!props.singleDatePicker && selection.length < 2}
-              onClick={onApply}
-            />
-            <input
-              type='button'
-              value='Cancel'
-              onClick={onCancel}
-            />
-          </div>
-        </div>
-      }
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
